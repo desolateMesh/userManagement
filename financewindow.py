@@ -165,9 +165,13 @@ class FinanceManager:
         canvas.draw()
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-        tk.Button(budget_window, text="Button1").pack()
-        tk.Button(budget_window, text="Button2").pack()
-        tk.Button(budget_window, text="Button3").pack()
+        button_frame = tk.Frame(budget_window)
+        button_frame.pack(side=tk.BOTTOM, pady=10)
+
+        tk.Button(button_frame, text="New Budget").pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="Update Budget").pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="Delete Budget").pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="Back").pack(side=tk.LEFT, padx=5)
     
     plt.show()
 
