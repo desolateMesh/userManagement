@@ -136,3 +136,38 @@ class DatabaseManager:
             print("Profile deleted successfully")
         except Exception as e:
             print(f"Error deleting profile: {str(e)}")
+
+    def add_expense(self, user_id, category, amount, date):
+        """Add a new expense record to the database."""
+        try:
+            self.cursor.execute("""INSERT INTO expense (user_id, category, amount, date) 
+                                   VALUES (?, ?, ?, ?)""", (user_id, category, amount, date))
+            self.conn.commit()
+        except Exception as e:
+            print(f"Error adding expense: {str(e)}")
+
+    def update_expense(self, expense_id, category, amount, date):
+        """Update an existing expense record."""
+        try:
+            self.cursor.execute("""UPDATE expense SET category=?, amount=?, date=? 
+                                   WHERE expense_id=?""", (category, amount, date, expense_id))
+            self.conn.commit()
+        except Exception as e:
+            print(f"Error updating expense: {str(e)}")
+
+    def delete_expense(self, expense_id):
+        """Delete an expense record from the database."""
+        try:
+            self.cursor.execute("DELETE FROM expense WHERE expense_id=?", (expense_id,))
+            self.conn.commit()
+        except Exception as e:
+            print(f"Error deleting expense: {str(e)}")
+
+    def fetch_expense_data_by_user(self, user_id):
+        try:
+            self.cursor.execute("SELECT * FROM expense WHERE user_id=?", (user_id,))
+            expenses = self.cursor.fetchall()
+            return expenses
+        except Exception as e:
+            print(f"Error fetching expense data for user {user_id}: {str(e)}")
+            return []

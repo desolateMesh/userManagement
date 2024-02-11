@@ -73,20 +73,20 @@ class UserDatabaseDashboard:
         if not user_id:
             messagebox.showwarning("Fetch Data", "User ID is required to fetch data.")
             return
-    
-        # Fetch user profile data
+
+        
         user_data = self.db_manager.fetch_data_by_user_id(user_id)
         if not user_data:
             self.data_display.delete('1.0', tk.END)
             self.data_display.insert(tk.END, "No user profile found for this ID.\n")
         else:
-        # Display User Profile
+        
             user_fields = ['Customer ID', 'First Name', 'Last Name', 'Username', 'Password', 'Email', 'Phone Number', 'Address', 'Bio']
             formatted_user_data = "\n".join(f"{field_name}: {item}" for field_name, item in zip(user_fields, user_data))
             self.data_display.delete('1.0', tk.END)
             self.data_display.insert(tk.END, "User Profile:\n" + formatted_user_data + "\n\n")
-    
-        # Fetch and display incomes for this user
+
+        
         incomes = self.db_manager.fetch_income_data_by_user(user_id)
         if incomes:
             self.data_display.insert(tk.END, "Incomes:\n")
@@ -98,6 +98,17 @@ class UserDatabaseDashboard:
         else:
             self.data_display.insert(tk.END, "No income records found for this user.\n\n")
 
+        
+        expenses = self.db_manager.fetch_expense_data_by_user(user_id)
+        if expenses:
+            self.data_display.insert(tk.END, "Expenses:\n")
+            expense_fields = ['Expense ID', 'User ID', 'Category', 'Amount', 'Date']
+            for expense in expenses:
+                formatted_expense = "\n".join(f"{field_name}: {item}" for field_name, item in zip(expense_fields, expense))
+                self.data_display.insert(tk.END, formatted_expense + "\n")
+            self.data_display.insert(tk.END, "\n")
+        else:
+            self.data_display.insert(tk.END, "No expense records found for this user.\n\n")
 
     def open_update_data_window(self):
         update_window = tk.Toplevel(self.root)
