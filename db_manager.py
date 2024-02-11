@@ -166,8 +166,16 @@ class DatabaseManager:
     def fetch_expense_data_by_user(self, user_id):
         try:
             self.cursor.execute("SELECT * FROM expense WHERE user_id=?", (user_id,))
-            expenses = self.cursor.fetchall()
-            return expenses
+            expense = self.cursor.fetchall()
+            return expense
         except Exception as e:
             print(f"Error fetching expense data for user {user_id}: {str(e)}")
             return []
+
+    def fetch_income_and_expense_for_user(self, user_id):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM income WHERE user_id=?", (user_id,))
+        income = cursor.fetchall()
+        cursor.execute("SELECT * FROM expense WHERE user_id=?", (user_id,))
+        expense = cursor.fetchall()
+        return income, expense
