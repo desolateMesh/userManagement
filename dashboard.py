@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox
 from db_manager import DatabaseManager
 from update_data import UpdateDataWindow
+from financewindow import FinanceManager
 
 class UserDatabaseDashboard:
     def __init__(self, root):
@@ -21,8 +22,12 @@ class UserDatabaseDashboard:
         self.create_profile_button = tk.Button(self.button_frame, text="Create Profile", command=self.open_profile_window)
         self.create_profile_button.pack(fill=tk.X)
 
-        self.fetch_data_button = tk.Button(self.button_frame, text="Fetch Data", command=self.fetch_data)
+        self.manage_finances_button = tk.Button(self.button_frame, text="Manage Finances", command=self.open_finance_window)
+        self.manage_finances_button.pack(fill=tk.X)
+
+        self.fetch_data_button = tk.Button(self.button_frame, text="Fetch Data", command=self.fetch_user_and_incomes_prompt)
         self.fetch_data_button.pack(fill=tk.X)
+
 
         self.update_data_button = tk.Button(self.button_frame, text="Update Data", command=self.open_update_data_window)
         self.update_data_button.pack(fill=tk.X)
@@ -34,7 +39,15 @@ class UserDatabaseDashboard:
         self.data_display.pack(pady=10)
 
     def create_table(self):
-        self.db_manager.create_customer_table()
+        try:
+            self.db_manager.create_all_tables()
+            messagebox.showinfo("Success", "All tables created successfully")
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to create tables: {e}")
+
+    def open_finance_window(self):
+        new_window = tk.Toplevel()
+        FinanceManager(new_window, self.db_manager)
 
     def open_profile_window(self):
         profile_window = tk.Toplevel(self.root)
@@ -55,13 +68,36 @@ class UserDatabaseDashboard:
         save_button = tk.Button(profile_window, text="Save Profile", command=save_profile)
         save_button.grid(row=len(labels), column=0, columnspan=2)
 
-    def fetch_data(self):
-        data = self.db_manager.fetch_data()
-        self.data_display.delete('1.0', tk.END)
+    def fetch_user_and_incomes_prompt(self):
+        user_id = simpledialog.askstring("Fetch Data", "Enter User ID:")
+        if not user_id:
+            messagebox.showwarning("Fetch Data", "User ID is required to fetch data.")
+            return
+    
+        # Fetch user profile data
+        user_data = self.db_manager.fetch_data_by_user_id(user_id)
+        if not user_data:
+            self.data_display.delete('1.0', tk.END)
+            self.data_display.insert(tk.END, "No user profile found for this ID.\n")
+        else:
+        # Display User Profile
+            user_fields = ['Customer ID', 'First Name', 'Last Name', 'Username', 'Password', 'Email', 'Phone Number', 'Address', 'Bio']
+            formatted_user_data = "\n".join(f"{field_name}: {item}" for field_name, item in zip(user_fields, user_data))
+            self.data_display.delete('1.0', tk.END)
+            self.data_display.insert(tk.END, "User Profile:\n" + formatted_user_data + "\n\n")
+    
+        # Fetch and display incomes for this user
+        incomes = self.db_manager.fetch_income_data_by_user(user_id)
+        if incomes:
+            self.data_display.insert(tk.END, "Incomes:\n")
+            income_fields = ['Income ID', 'User ID', 'Source', 'Amount', 'Date']
+            for income in incomes:
+                formatted_income = "\n".join(f"{field_name}: {item}" for field_name, item in zip(income_fields, income))
+                self.data_display.insert(tk.END, formatted_income + "\n")
+            self.data_display.insert(tk.END, "\n")
+        else:
+            self.data_display.insert(tk.END, "No income records found for this user.\n\n")
 
-        for row in data:
-            formatted_row = "\n".join(f"{field_name}: {item}" for field_name, item in zip(['Customer ID', 'First Name', 'Last Name', 'Username', 'Password', 'Email', 'Phone Number', 'Address', 'Bio'], row))
-            self.data_display.insert(tk.END, formatted_row + "\n\n")
 
     def open_update_data_window(self):
         update_window = tk.Toplevel(self.root)
