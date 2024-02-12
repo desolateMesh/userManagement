@@ -3,6 +3,7 @@ from tkinter import messagebox
 from tkinter import simpledialog
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from itertools import cycle
 
 class FinanceManager:
     def __init__(self, root, db_manager):
@@ -140,28 +141,40 @@ class FinanceManager:
         else:
             messagebox.showwarning("Manage Budgets", "User ID is required.")
 
-    def open_budget_window(self, user_id):
+    def open_budget_window(self, username):
         self.root.destroy()          
         budget_window = tk.Tk()
-        budget_window.title("Manage Budgets for User ID: " + user_id)
+        budget_window.title("Manage Budgets for User ID: " + username)
 
-        income, expense = self.db_manager.fetch_income_and_expense_for_user(user_id)
+        income, expense = self.db_manager.fetch_income_and_expense_for_user(username)
         self.setup_budget_management_interface(budget_window, income, expense)
 
     def setup_budget_management_interface(self, budget_window, incomes, expenses):
-        total_income = sum(income[3] for income in incomes) if incomes else 0
-        total_expense = sum(expense[3] for expense in expenses) if expenses else 0
+    
+        income_dict = {}
+        for income in incomes if incomes else []:
+            income_dict[income[2]] = income_dict.get(income[2], 0) + income[3]
+
+        expense_dict = {}
+        for expense in expenses if expenses else []:
+            expense_dict[expense[2]] = expense_dict.get(expense[2], 0) + expense[3]
+
+        total_income = sum(income_dict.values())
+        total_expense = sum(expense_dict.values())
         remaining_budget = total_income - total_expense
 
-        labels = ['Income', 'Expense', 'Remaining Budget']
-        sizes = [total_income, total_expense, remaining_budget]
-        colors = ['gold', 'yellowgreen', 'lightcoral']
+        labels = list(income_dict.keys()) + list(expense_dict.keys()) + ['Remaining Budget']
+        sizes = list(income_dict.values()) + list(expense_dict.values()) + [remaining_budget]
 
-        fig1, ax1 = plt.subplots()
+        base_colors = ['gold', 'yellowgreen', 'lightcoral', 'skyblue', 'orange', 'purple', 'pink', 'lightblue', 'lightgreen', 'grey']
+        color_cycle = cycle(base_colors)
+        colors = [next(color_cycle) for _ in range(len(labels))]
+
+        fig, ax1 = plt.subplots()
         ax1.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
-        ax1.axis('equal')
+        ax1.axis('equal')  
 
-        canvas = FigureCanvasTkAgg(fig1, master=budget_window)
+        canvas = FigureCanvasTkAgg(fig, master=budget_window)
         canvas.draw()
         canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
@@ -172,8 +185,8 @@ class FinanceManager:
         tk.Button(button_frame, text="Update Budget").pack(side=tk.LEFT, padx=5)
         tk.Button(button_frame, text="Delete Budget").pack(side=tk.LEFT, padx=5)
         tk.Button(button_frame, text="Back").pack(side=tk.LEFT, padx=5)
-    
-    plt.show()
+
+        plt.close(fig)
 
 
 if __name__ == "__main__":
