@@ -8,6 +8,9 @@ class UserDatabaseDashboard:
     def __init__(self, root):
         self.root = root
         self.root.title("User Database Dashboard")
+
+        self.root.geometry("550x200+200+100")
+
         self.db_manager = DatabaseManager("mydatabase.db")
 
         self.button_frame = tk.Frame(root)
@@ -74,7 +77,6 @@ class UserDatabaseDashboard:
             messagebox.showwarning("Fetch Data", "User ID is required to fetch data.")
             return
 
-        
         user_data = self.db_manager.fetch_data_by_user_id(user_id)
         if not user_data:
             self.data_display.delete('1.0', tk.END)
@@ -86,7 +88,6 @@ class UserDatabaseDashboard:
             self.data_display.delete('1.0', tk.END)
             self.data_display.insert(tk.END, "User Profile:\n" + formatted_user_data + "\n\n")
 
-        
         incomes = self.db_manager.fetch_income_data_by_user(user_id)
         if incomes:
             self.data_display.insert(tk.END, "Incomes:\n")
@@ -98,7 +99,6 @@ class UserDatabaseDashboard:
         else:
             self.data_display.insert(tk.END, "No income records found for this user.\n\n")
 
-        
         expenses = self.db_manager.fetch_expense_data_by_user(user_id)
         if expenses:
             self.data_display.insert(tk.END, "Expenses:\n")

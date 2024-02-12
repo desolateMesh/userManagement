@@ -11,6 +11,8 @@ class FinanceManager:
         self.db_manager = db_manager
         self.root.title("Finance Manager")
 
+        self.root.geometry("550x200+200+100")
+
         tk.Button(self.root, text="Manage Incomes", command=self.setup_income_form).grid(row=0, column=0, padx=10, pady=10)
         tk.Button(self.root, text="Manage Expenses", command=self.setup_expense_form).grid(row=0, column=1, padx=10, pady=10)
         tk.Button(self.root, text="Manage Budgets", command=self.prompt_user_id_and_open_budget_window).grid(row=0, column=2, padx=10, pady=10)
