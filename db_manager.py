@@ -55,6 +55,18 @@ class DatabaseManager:
                                FOREIGN KEY(user_id) REFERENCES user(user_id))""")
         self.conn.commit()
 
+    def create_goals_table(self):
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS goals (
+                                goal_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                user_id TEXT,
+                                goal_name TEXT NOT NULL,
+                                target_amount REAL NOT NULL,
+                                start_date TEXT NOT NULL,
+                                end_date TEXT NOT NULL,
+                                priority INTEGER CHECK(priority BETWEEN 1 AND 5),
+                                FOREIGN KEY(user_id) REFERENCES user(user_id))""")
+        self.conn.commit()
+
     def add_income(self, user_id, source, amount, date):
         query = """INSERT INTO income (user_id, source, amount, date) VALUES (?, ?, ?, ?)"""
         self.cursor.execute(query, (user_id, source, amount, date))
@@ -179,3 +191,14 @@ class DatabaseManager:
         cursor.execute("SELECT * FROM expense WHERE user_id=?", (user_id,))
         expense = cursor.fetchall()
         return income, expense
+    
+    def add_goal(self, user_id, goal_name, target_amount, start_date, end_date, priority):
+        self.cursor.execute("""INSERT INTO goals (user_id, goal_name, target_amount, start_date, end_date, priority) 
+                            VALUES (?, ?, ?, ?, ?, ?)""",
+                            (user_id, goal_name, target_amount, start_date, end_date, priority))
+        self.conn.commit()
+        
+    def fetch_goals_for_user(self, user_id):
+        self.cursor.execute("SELECT goal_name, target_amount, start_date, end_date, priority FROM goals WHERE user_id=?", (user_id,))
+        return self.cursor.fetchall()
+

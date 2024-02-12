@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import simpledialog
+from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from itertools import cycle
@@ -183,13 +184,76 @@ class FinanceManager:
         button_frame = tk.Frame(budget_window)
         button_frame.pack(side=tk.BOTTOM, pady=10)
 
-        tk.Button(button_frame, text="New Budget").pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="Update Budget").pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="Delete Budget").pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="New Budget Goal", command=self.create_new_budget_goal).pack(side=tk.LEFT, padx=5)        
+        tk.Button(button_frame, text="Update Budget Goal").pack(side=tk.LEFT, padx=5)
+        tk.Button(button_frame, text="Delete Budget Goal").pack(side=tk.LEFT, padx=5)
         tk.Button(button_frame, text="Back").pack(side=tk.LEFT, padx=5)
 
         plt.close(fig)
 
+
+    def create_new_budget_goal(self):
+        goal_window = tk.Toplevel()
+        goal_window.title("Set New Budget Goal")
+
+        tk.Label(goal_window, text="User ID:").grid(row=0, column=0)
+        user_id_entry = tk.Entry(goal_window)
+        user_id_entry.grid(row=0, column=1)
+
+        tk.Label(goal_window, text="Goal Name:").grid(row=1, column=0)
+        goal_name_entry = tk.Entry(goal_window)
+        goal_name_entry.grid(row=1, column=1)
+
+        tk.Label(goal_window, text="Goal Amount to be saved:").grid(row=2, column=0)
+        goal_amount_entry = tk.Entry(goal_window)
+        goal_amount_entry.grid(row=2, column=1)
+
+        tk.Label(goal_window, text="Goal Timeline Start:").grid(row=3, column=0)
+        goal_start_entry = tk.Entry(goal_window)
+        goal_start_entry.grid(row=3, column=1)
+
+        tk.Label(goal_window, text="Goal Timeline End:").grid(row=4, column=0)
+        goal_end_entry = tk.Entry(goal_window)
+        goal_end_entry.grid(row=4, column=1)
+
+        tk.Label(goal_window, text="Priority (1-5):").grid(row=5, column=0)
+        priority_entry = tk.Entry(goal_window)
+        priority_entry.grid(row=5, column=1)
+
+        submit_button = tk.Button(goal_window, text="Submit Goal",
+                                command=lambda: self.submit_goal(
+                                    user_id_entry.get(),
+                                    goal_name_entry.get(),
+                                    goal_amount_entry.get(),
+                                    goal_start_entry.get(),
+                                    goal_end_entry.get(),
+                                    priority_entry.get()))
+        submit_button.grid(row=6, column=0, columnspan=2)
+
+
+    def submit_goal(self, user_id, name, amount, start, end, priority):
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                raise ValueError("Amount must be positive.")
+        
+            start_date = datetime.strptime(start, "%Y-%m-%d")
+            end_date = datetime.strptime(end, "%Y-%m-%d")
+            if start_date >= end_date:
+                raise ValueError("Start date must be before end date.")
+            if start_date < datetime.now():
+                raise ValueError("Start date cannot be in the past.")
+
+            priority = int(priority)  
+            if priority < 1 or priority > 5:
+                raise ValueError("Priority must be between 1 and 5.")
+
+            self.db_manager.add_goal(user_id, name, amount, start, end, priority)
+
+            messagebox.showinfo("Success", "Goal added successfully.")
+        except ValueError as e:
+
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}")
 
 if __name__ == "__main__":
     root = tk.Tk()
