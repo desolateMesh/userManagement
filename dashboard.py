@@ -110,6 +110,16 @@ class UserDatabaseDashboard:
         else:
             self.data_display.insert(tk.END, "No expense records found for this user.\n\n")
 
+        goals = self.db_manager.fetch_goals_for_user(user_id)
+        if goals:
+            self.data_display.insert(tk.END, "Goals:\n")
+            goal_fields = ['Goal Name', 'Target Amount', 'Start Date', 'End Date', 'Priority']
+            for goal in goals:
+                formatted_goal = "\n".join(f"{field_name}: {item}" for field_name, item in zip(goal_fields, goal))
+                self.data_display.insert(tk.END, formatted_goal + "\n\n")
+        else:
+            self.data_display.insert(tk.END, "No goal records found for this user.\n\n")
+
     def open_update_data_window(self):
         update_window = tk.Toplevel(self.root)
         update_data_window = UpdateDataWindow(update_window, self.db_manager)
