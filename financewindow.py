@@ -16,7 +16,7 @@ class FinanceManager:
 
         tk.Button(self.root, text="Manage Incomes", command=self.setup_income_form).grid(row=0, column=0, padx=10, pady=10)
         tk.Button(self.root, text="Manage Expenses", command=self.setup_expense_form).grid(row=0, column=1, padx=10, pady=10)
-        tk.Button(self.root, text="Manage Budgets", command=self.prompt_user_id_and_open_budget_window).grid(row=0, column=2, padx=10, pady=10)
+        tk.Button(self.root, text="View Budget", command=self.prompt_user_id_and_open_budget_window).grid(row=0, column=2, padx=10, pady=10)
         tk.Button(self.root, text="Set New Budget Goal", command=self.prompt_for_user_id_goal).grid(row=0, column=3, padx=10, pady=10)
 
         self.form_frame = tk.Frame(self.root)
@@ -145,22 +145,21 @@ class FinanceManager:
             messagebox.showwarning("Set New Budget Goal", "User ID is required.")
 
     def prompt_user_id_and_open_budget_window(self):
-        user_id = simpledialog.askstring("Manage Budgets", "Enter User ID:")
+        user_id = simpledialog.askstring("Budget Visual", "Enter User ID:")
         if user_id:
             self.open_budget_window(user_id)
         else:
-            messagebox.showwarning("Manage Budgets", "User ID is required.")
+            messagebox.showwarning("Budget Visual", "User ID is required.")
 
     def open_budget_window(self, username):
-        self.root.destroy()          
+        self.root.destroy()
         budget_window = tk.Tk()
         budget_window.title("Manage Budgets for User ID: " + username)
 
-        income, expense = self.db_manager.fetch_income_and_expense_for_user(username)
-        self.setup_budget_management_interface(budget_window, income, expense)
+        income, expense, goals = self.db_manager.fetch_income_and_expense_for_user(username)
+        self.setup_budget_management_interface(budget_window, income, expense, goals)
 
-    def setup_budget_management_interface(self, budget_window, incomes, expenses):
-    
+    def setup_budget_management_interface(self, budget_window, incomes, expenses, goals):
         income_dict = {}
         for income in incomes if incomes else []:
             income_dict[income[2]] = income_dict.get(income[2], 0) + income[3]
@@ -169,10 +168,16 @@ class FinanceManager:
         for expense in expenses if expenses else []:
             expense_dict[expense[2]] = expense_dict.get(expense[2], 0) + expense[3]
 
-        total_income = sum(income_dict.values())
-        total_expense = sum(expense_dict.values())
-        remaining_budget = total_income - total_expense
+        goal_dict = {}
+        for goal in goals if goals else []:
+            goal_name, target_amount = goal
+            expense_dict[f"Goal: {goal_name}"] = target_amount
 
+        total_income = sum(income_dict.values())
+        total_expenses_and_goals = sum(expense_dict.values())
+        remaining_budget = total_income - total_expenses_and_goals 
+
+      
         labels = list(income_dict.keys()) + list(expense_dict.keys()) + ['Remaining Budget']
         sizes = list(income_dict.values()) + list(expense_dict.values()) + [remaining_budget]
 
@@ -181,8 +186,9 @@ class FinanceManager:
         colors = [next(color_cycle) for _ in range(len(labels))]
 
         fig, ax1 = plt.subplots()
+        sizes = [max(0, size) for size in sizes]
         ax1.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
-        ax1.axis('equal')  
+        ax1.axis('equal')
 
         canvas = FigureCanvasTkAgg(fig, master=budget_window)
         canvas.draw()

@@ -191,7 +191,9 @@ class DatabaseManager:
         income = cursor.fetchall()
         cursor.execute("SELECT * FROM expense WHERE user_id=?", (user_id,))
         expense = cursor.fetchall()
-        return income, expense
+        cursor.execute("SELECT goal_name, target_amount FROM goals WHERE user_id=?", (user_id,))
+        goals = cursor.fetchall()
+        return income, expense, goals
     
     def add_goal(self, user_id, goal_name, target_amount, start_date, end_date, priority):
         self.cursor.execute("""INSERT INTO goals (user_id, goal_name, target_amount, start_date, end_date, priority) 
