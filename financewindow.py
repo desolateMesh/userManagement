@@ -17,6 +17,7 @@ class FinanceManager:
         tk.Button(self.root, text="Manage Incomes", command=self.setup_income_form).grid(row=0, column=0, padx=10, pady=10)
         tk.Button(self.root, text="Manage Expenses", command=self.setup_expense_form).grid(row=0, column=1, padx=10, pady=10)
         tk.Button(self.root, text="Manage Budgets", command=self.prompt_user_id_and_open_budget_window).grid(row=0, column=2, padx=10, pady=10)
+        tk.Button(self.root, text="Set New Budget Goal", command=self.prompt_for_user_id_goal).grid(row=0, column=3, padx=10, pady=10)
 
         self.form_frame = tk.Frame(self.root)
         self.form_frame.grid(row=1, column=0, columnspan=3, sticky="ew")
@@ -60,7 +61,6 @@ class FinanceManager:
         if not self.validate_data({'source': source, 'amount': amount, 'date': date}):
             messagebox.showwarning("Warning", "Invalid data. Please correct and try again.")
             return
-    
         try:
             self.db_manager.add_income(user_id, source, amount, date)
             messagebox.showinfo("Success", "Income saved successfully")
@@ -136,6 +136,13 @@ class FinanceManager:
             return True
         except ValueError:
             return False
+        
+    def prompt_for_user_id_goal(self):
+        user_id = simpledialog.askstring("Set New Budget Goal", "Enter User ID:")
+        if user_id:
+            self.create_new_budget_goal(user_id)
+        else:
+            messagebox.showwarning("Set New Budget Goal", "User ID is required.")
 
     def prompt_user_id_and_open_budget_window(self):
         user_id = simpledialog.askstring("Manage Budgets", "Enter User ID:")
@@ -184,21 +191,16 @@ class FinanceManager:
         button_frame = tk.Frame(budget_window)
         button_frame.pack(side=tk.BOTTOM, pady=10)
 
-        tk.Button(button_frame, text="New Budget Goal", command=self.create_new_budget_goal).pack(side=tk.LEFT, padx=5)        
-        tk.Button(button_frame, text="Update Budget Goal").pack(side=tk.LEFT, padx=5)
-        tk.Button(button_frame, text="Delete Budget Goal").pack(side=tk.LEFT, padx=5)
         tk.Button(button_frame, text="Back").pack(side=tk.LEFT, padx=5)
 
         plt.close(fig)
 
-
-    def create_new_budget_goal(self):
+    def create_new_budget_goal(self, user_id):
         goal_window = tk.Toplevel()
         goal_window.title("Set New Budget Goal")
 
         tk.Label(goal_window, text="User ID:").grid(row=0, column=0)
-        user_id_entry = tk.Entry(goal_window)
-        user_id_entry.grid(row=0, column=1)
+        user_id_label = tk.Label(goal_window, text=user_id) 
 
         tk.Label(goal_window, text="Goal Name:").grid(row=1, column=0)
         goal_name_entry = tk.Entry(goal_window)
@@ -208,11 +210,11 @@ class FinanceManager:
         goal_amount_entry = tk.Entry(goal_window)
         goal_amount_entry.grid(row=2, column=1)
 
-        tk.Label(goal_window, text="Goal Timeline Start:").grid(row=3, column=0)
+        tk.Label(goal_window, text="Goal Timeline Start (YYYY-MM-DD):").grid(row=3, column=0)
         goal_start_entry = tk.Entry(goal_window)
         goal_start_entry.grid(row=3, column=1)
 
-        tk.Label(goal_window, text="Goal Timeline End:").grid(row=4, column=0)
+        tk.Label(goal_window, text="Goal Timeline End (YYYY-MM-DD):").grid(row=4, column=0)
         goal_end_entry = tk.Entry(goal_window)
         goal_end_entry.grid(row=4, column=1)
 
@@ -222,14 +224,13 @@ class FinanceManager:
 
         submit_button = tk.Button(goal_window, text="Submit Goal",
                                 command=lambda: self.submit_goal(
-                                    user_id_entry.get(),
+                                    user_id,
                                     goal_name_entry.get(),
                                     goal_amount_entry.get(),
                                     goal_start_entry.get(),
                                     goal_end_entry.get(),
                                     priority_entry.get()))
         submit_button.grid(row=6, column=0, columnspan=2)
-
 
     def submit_goal(self, user_id, name, amount, start, end, priority):
         try:
@@ -244,15 +245,14 @@ class FinanceManager:
             if start_date < datetime.now():
                 raise ValueError("Start date cannot be in the past.")
 
-            priority = int(priority)  
-            if priority < 1 or priority > 5:
+            priority = int(priority)
+            if not 1 <= priority <= 5:
                 raise ValueError("Priority must be between 1 and 5.")
 
             self.db_manager.add_goal(user_id, name, amount, start, end, priority)
 
             messagebox.showinfo("Success", "Goal added successfully.")
         except ValueError as e:
-
             messagebox.showerror("Error", f"An unexpected error occurred: {e}")
 
 if __name__ == "__main__":

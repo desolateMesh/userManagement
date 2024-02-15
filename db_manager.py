@@ -10,6 +10,7 @@ class DatabaseManager:
         self.create_income_table()
         self.create_budget_table()
         self.create_expense_table()
+        self.create_goals_table()
 
     def create_user_table(self):
         self.cursor.execute("""CREATE TABLE IF NOT EXISTS user (
